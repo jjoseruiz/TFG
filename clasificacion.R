@@ -24,13 +24,11 @@ exac=sum(diag(mc_rf))/sum(mc_rf)
 exac
 varImpPlot(RFmodel)
 
-?train
 
 #para escribir el modelo
 saveRDS(RFmodel,"RandomForest_almacen2000.rds")
 
 
-lesion
 library(caret)
 trainData=entrenamiento
 testData=prueba
