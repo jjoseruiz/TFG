@@ -10,7 +10,7 @@ s1_FLAIR_CORRECTED=correccion(antsImageRead("/Users/juanjoseruizpenela/Documents
 S1_MASK = antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/raw_images/patient1_brainmask.nii.gz")
 
 #PARA MI DATASET DE MRI APLICAREMOS LA SIGUIENTE SECUENCIA DE PASOS
-for (i in 5:30){
+for (i in 1:30){
   ###LECTURA
   if(i == 1){
     IMG_MASK = S1_MASK
