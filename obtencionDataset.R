@@ -51,5 +51,5 @@ for(l in 1:nSujetos){
   j=j+nrow(dataset)
   print(paste0("dataset sujeto ",l))
 }
-write.csv(almacen,"almacenMediano")
+write.csv(almacen,"dataset2500_asymsym")
 
