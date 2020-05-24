@@ -5,7 +5,7 @@ library(rpart)
 library(rpart.plot)
 library(dplyr)
 library(randomForest)
-dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/almacen1000")
+dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset2500_asymsym")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
 #lesion=filter(dataset,LESION==1)
@@ -26,8 +26,8 @@ varImpPlot(RFmodel)
 
 
 #para escribir el modelo
-saveRDS(RFmodel,"RandomForest_almacen2000.rds")
-RFmodel=readRDS("RandomForest_almacen2000.rds")
+saveRDS(RFmodel,"RandomForest_dataset2500.rds")
+#RFmodel=readRDS("RandomForest_almacen2000.rds")
 
 library(caret)
 trainData=entrenamiento
@@ -41,8 +41,8 @@ prediBayes=predict(bayesiano,prueba)
 mc_nb=table(prediBayes ,prueba$LESION)
 exac_nb=sum(diag(mc_nb))/sum(mc_nb)
 exac_nb
-saveRDS(bayesiano,"Bayesian_almacen2000.rds")
-bayesiano=readRDS("Bayesian_almacen2000.rds")
+saveRDS(bayesiano,"Bayesian_dataset2500.rds")
+#bayesiano=readRDS("Bayesian_almacen2000.rds")
 
 #bayesiano<-readRD("modeloBayesiano.rds")
 #k-nearest-neighbors
@@ -55,9 +55,10 @@ exac_knn=sum(diag(mc_knn))/sum(mc_knn)
 exac_knn
 
 saveRDS(knn,"Knn_almacen2000.rds")
+#knn=readRDS("Knn_almacen2000.rds")
 
-
-knn=readRDS("Knn_almacen2000.rds")
+#regla fissher 
+#method= "lda"
 
 #Comité de expertos
 resultado=c(1:length(prueba$LESION))
