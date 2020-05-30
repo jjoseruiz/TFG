@@ -8,10 +8,12 @@ library(randomForest)
 dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset2500_asymsym")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
-#lesion=filter(dataset,LESION==1)
+lesion=filter(dataset,LESION == 0)
 dataset$LESION=factor(dataset$LESION)
 set.seed(1924562)
 #creamos la partición
+les=dataset$LESION
+colnames(les)<-c("LESION")
 
 particion=runif(nrow(dataset))
 entrenamiento=dataset[particion<0.8,]
@@ -27,7 +29,7 @@ varImpPlot(RFmodel)
 
 #para escribir el modelo
 saveRDS(RFmodel,"RandomForest_dataset2500.rds")
-#RFmodel=readRDS("RandomForest_almacen2000.rds")
+#RFmodel=readRDS("RandomForest_dataset2500.rds")
 
 library(caret)
 trainData=entrenamiento
@@ -42,7 +44,7 @@ mc_nb=table(prediBayes ,prueba$LESION)
 exac_nb=sum(diag(mc_nb))/sum(mc_nb)
 exac_nb
 saveRDS(bayesiano,"Bayesian_dataset2500.rds")
-#bayesiano=readRDS("Bayesian_almacen2000.rds")
+#bayesiano=readRDS("Bayesian_dataset2500.rds")
 
 #bayesiano<-readRD("modeloBayesiano.rds")
 #k-nearest-neighbors
