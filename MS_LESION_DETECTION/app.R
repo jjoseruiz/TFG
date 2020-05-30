@@ -8,14 +8,17 @@
 #
 
 library(shiny)
+library(neurobase)
 library(ANTsR)
+library(extrantsr)
+library(RNifti)
 library(shinythemes)
 RFmodel=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/RandomForest_dataset2500.rds")
 
 
 read_image_as_array<-function(path){
   nift=antsImageRead(path)
-  if(length(dim(nift))==3)return (nift[,,])
+  if(length(dim(nift))==3) return(nift[,,])
   return(nift[,,,])
 }
 
@@ -37,8 +40,10 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                                  fileInput("ImagenFlair","FLAIR", multiple = FALSE, accept = c(".nii",".nii.gz"),placeholder = "Suba su imagen FLAIR"),
                                  fileInput("ImagenT1","T1", multiple = FALSE, accept = c(".nii",".nii.gz"),placeholder = "Suba su imagen T1"),
                                  actionButton("botonSubir","Subir imagenes"),
-                                 actionLink("gonext","Siguiente paso",icon = icon("arrow-alt-circle-right"))                                 
-                                 ,textOutput(outputId="clics")
+                                 actionLink("gonext","Siguiente paso",icon = icon("arrow-alt-circle-right")),                                 
+                                 tags$h6(textOutput(outputId="clics")),
+                                 actionButton("botonComprobar","Compruebo"),
+                                 tags$h6(textOutput(outputId = "compr"))
                                  )),
                     tabPanel("Preprocesado",
                              titlePanel("Descripción"),mainPanel("Aquuí prepararemos sus imágenes. Esto puede tardar varios minutos.",
@@ -68,11 +73,37 @@ server <- function(input, output,session) {
   options(shiny.maxRequestSize = 500*1024^2)
   print("antes")
   #cuando el usuario hace click en Subir Imagenes, estas se cargan 
+  FLAIR=NULL
+  T1=NULL
+  app_imagenes<-eventReactive(input$botonSubir,{
+    if(!is.null(input$ImagenFlair) & !is.null(input$ImagenT1)){
+      datapath=input$ImagenFlair$datapath
+      datapath2=input$ImagenT1$datapath
+      if(tools::file_ext(datapath)=="gz" & tools::file_ext(datapath2)=="gz"){
+        datapath=sub("gz$","nii.gz",datapath)
+        datapath2=sub("gz$","nii.gz",datapath2)
+        file.rename(input$ImagenFlair$datapath,datapath)
+        file.rename(input$ImagenT1$datapath,datapath2)
+      }
+      FLAIR=antsImageRead(datapath)
+      T1=antsImageRead(datapath2)
+      lista=list(FLAIR,T1)
+      return(lista)
+    }else{
+      #FLAIR<-read_image_as_array(input$ImagenFlair)
+      "Suba ambas imágenes porfavor"
+    }
+  })
   output$clics<-eventReactive(input$botonSubir,{
-    "hola"
+    if(!is.null(input$ImagenFlair) & !is.null(input$ImagenT1)){
+      "Imágenes subidas con éxito. Continue en la ventana de Preprocesasdo"
+    }else{
+      "Suba ambas imágenes porfavor"
+    }
   })
   observeEvent(input$botonSubir,{
     print("he clickeado")
+    print(str(app_imagenes()[[1]]))
   })
   #Cuando el usuario hace click en Comenzar preprocesado, se realiza el prepro y se generan las demás imágenes
   print("desppues")
@@ -80,13 +111,3 @@ server <- function(input, output,session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
-#if(is.null(input$ImagenFlair)){
-  #out<-read_image_as_array(input$ImagenFlair)
-#}else{
-  #datapath=input$ImagenFlair$datapath
-  #if(tools::file_ext(datapath)=="gz"){
-   # file.rename(input$ImagenFlair$datapath,datapath)
-  #}
- # out<-read_image_as_array(datapath)
-#}
-#return (out)
