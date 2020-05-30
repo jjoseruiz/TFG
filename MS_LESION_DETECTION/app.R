@@ -38,14 +38,17 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                                  fileInput("ImagenT1","T1", multiple = FALSE, accept = c(".nii",".nii.gz"),placeholder = "Suba su imagen T1"),
                                  actionButton("botonSubir","Subir imagenes"),
                                  actionLink("gonext","Siguiente paso",icon = icon("arrow-alt-circle-right"))                                 
-                             )),
+                                 ,textOutput(outputId="clics")
+                                 )),
                     tabPanel("Preprocesado",
                              titlePanel("Descripción"),mainPanel("Aquuí prepararemos sus imágenes. Esto puede tardar varios minutos.",
                                                                   "aquí pondría alguna señal de por que parte va el procesado de las imágenes/loading correcion n3 90%",
                                                                   actionButton("Execute_Prepro","Comenzar Prepreocesado"))
           
                     ),
-                    
+                    tabPanel("Obtención de características",
+                             actionButton("executeFeatures","Obtención dataset")
+                    ),
                     tabPanel("Predicción",
                              titlePanel("¿Qué modelos de Machine Learning desea aplicar?"),
                              checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","k-nearest-neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb")),
@@ -65,8 +68,8 @@ server <- function(input, output,session) {
   options(shiny.maxRequestSize = 500*1024^2)
   print("antes")
   #cuando el usuario hace click en Subir Imagenes, estas se cargan 
-  IMAGENFLAIR<-eventReactive(input$boonSubir(),{
-    return("hola")
+  output$clics<-eventReactive(input$botonSubir,{
+    "hola"
   })
   observeEvent(input$botonSubir,{
     print("he clickeado")
