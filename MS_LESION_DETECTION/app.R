@@ -10,8 +10,12 @@
 library(shiny)
 library(ANTsR)
 library(shinythemes)
+<<<<<<< HEAD
 RFmodel=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/RandomForest_dataset2500.rds")
 
+=======
+# Define UI for application that draws a histogram
+>>>>>>> 00946c4778cfd246ef4f4acefd4d0cf8b265b245
 read_image_as_array<-function(path){
   nift=antsImageRead(path)
   if(length(dim(nift))==3)return (nift[,,])
@@ -43,11 +47,29 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                              "aquí pondría alguna señal de por que parte va el procesado de las imágenes/loading correcion n3 90%"),
                     tabPanel("Predicción",
                              titlePanel("¿Qué modelos de Machine Learning desea aplicar?"),
+<<<<<<< HEAD
                              checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","k-nearest-neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb")),
                              actionButton("executeClass","Aplica Predicción")
                     ),
                     tabPanel("Resultados",
                              mainPanel("RANDOM FOREST"),mainPanel("BAYES"),mainPanel("KNN",textOutput("out"))))
+=======
+                             checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","k-nearest-neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb"))
+                    ),
+                    tabPanel("Resultados",
+                             mainPanel(
+                               sidebarLayout (h6("Random Forest"),mainPanel = mainPanel(
+                                 
+                               )),
+                               sidebarLayout(h6("knn"),mainPanel = mainPanel(
+                                 
+                               )),
+                               sidebarLayout(h6("Bayes"),mainPanel = mainPanel(
+                                 
+                               ))
+                             ),
+                             ))
+>>>>>>> 00946c4778cfd246ef4f4acefd4d0cf8b265b245
 )
 server <- function(input, output) {
   options(shiny.maxRequestSize = 500*1024^2)
@@ -61,7 +83,10 @@ server <- function(input, output) {
           file.rename(input$ImagenFlair$datapath,datapath)
         }
         out<-read_image_as_array(datapath)
+<<<<<<< HEAD
         print("he entrado")
+=======
+>>>>>>> 00946c4778cfd246ef4f4acefd4d0cf8b265b245
       }
       return (out)
     })
