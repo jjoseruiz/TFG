@@ -56,16 +56,19 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                     ),
                     tabPanel("Predicción",
                              titlePanel("¿Qué modelos de Machine Learning desea aplicar?"),
-                             checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","k-nearest-neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb")),
-                             actionButton("executeClass","Aplica Predicción")
+                             checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","K-Nearest-Neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb")),
+                             actionButton("cargaModelos",tags$h5("Carga los modelos seleccionados")),
+                             tags$h6(textOutput("textCargado")),
+                             actionButton("executeClass",tags$h5("Aplica Predicción")),
+                             textOutput(tags$h6("textPredi"))
                     ),
                     tabPanel(
                       "Resultados",
                         fluidRow(
-                        column(3,tags$h6("RANDOM FOREST")),
-                        column(3,tags$h6("NAIVE BAYES")),
-                        column(3,tags$h6("KNN")),
-                        column(3,tags$h6("Comité Expertos"),textOutput("nombrez"))
+                        column(3,tags$h5("RANDOM FOREST")),
+                        column(3,tags$h5("NAIVE BAYES")),
+                        column(3,tags$h5("KNN")),
+                        column(3,tags$h5("Comité Expertos"),textOutput("nombrez"))
                         )
                     )))
                 
@@ -104,6 +107,39 @@ server <- function(input, output,session) {
   observeEvent(input$botonSubir,{
     print("he clickeado")
     print(str(app_imagenes()[[1]]))
+  })
+  modelos<-eventReactive(input$cargaModelos,{
+    #modelos = input$ml
+    model=list()
+    if(is.null(input$ml)){
+      for(i in 1:length(input$ml)){
+        if(input$ml[[i]]==("rf")){
+          rf=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/RandomForest_dataset2500.rds")
+          a=lappend(model,rf)
+        }
+        else if(input$ml[[i]]=="knn"){
+          knn=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Knn_dataset2500.rds")
+          b=lappend(model,knn)
+        }
+        else if(input$ml[[i]]=="nv"){
+          nv=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Bayesian_dataset2500.rds")
+          model=lappend(model,nv)
+        }
+      }
+      return(model)
+    }
+  })
+  output$textCargado<-eventReactive(input$cargaModelos,{
+    if(is.null(input$ml)){
+      "Selecciona algún modelo."
+    }else{
+      "Modelos Cargados"
+    }
+  })
+  observeEvent(input$cargaModelos,{
+    print("he clickeado cargamodelos")
+    print(input$ml[[]]=="rf")
+    print(modelos())
   })
   #Cuando el usuario hace click en Comenzar preprocesado, se realiza el prepro y se generan las demás imágenes
   print("desppues")
