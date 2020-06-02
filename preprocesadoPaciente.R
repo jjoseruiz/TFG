@@ -8,24 +8,29 @@ preprocesadoPaciente<-function(listaImagenes){
   flair=correccion(listaImagenes[[1]])
   t1=correccion(listaImagenes[[2]])
   #Registro
+  s1_FLAIR_CORRECTED=antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/s1_FLAIR_CORRECTED.nii.gz"))
   wtx = antsRegistration(s1_FLAIR_CORRECTED,flair,typeofTransform = "AffineFast")
   wtt1 = antsRegistration(s1_FLAIR_CORRECTED,t1,typeofTransform = "AffineFast")
   flairReg=antsApplyTransforms(s1_FLAIR_CORRECTED,flair,transformlist = wtx$fwdtransforms)
   t1Reg=antsApplyTransforms(s1_FLAIR_CORRECTED,t1,transformlist = wtt1$fwdtransforms)
   #Extraccion
   #Generando máscaras
-  imgs=mass_images(n_templates=5)
+  imgs=mass_images(n_templates=3)
   mFlair=extrantsr::malf(
     infile = flairReg,
     template.images = imgs$images,
     template.structs = imgs$mask,
-    keep_images = FALSE
+    keep_images = FALSE,
+    typeofTransform = "AffineFast",
+    interpolator = "linear"
   )  
   mT1=extrantsr::malf(
     infile = t1Reg,
     template.images = imgs$images,
     template.structs = imgs$mask,
-    keep_images = FALSE
+    keep_images = FALSE,
+    typeofTransform="AffineFast",
+    interpolator = "Lineas"
   )
   flair_extr=maskImage(flairReg,mFlair)
   t1_extr=maskImage(t1Reg,mT1)
