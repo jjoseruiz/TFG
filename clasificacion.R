@@ -8,7 +8,7 @@ library(randomForest)
 dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset2500_asymsym")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
-lesion=filter(dataset,LESION == 0)
+#lesion=filter(dataset,LESION == 0)
 dataset$LESION=factor(dataset$LESION)
 set.seed(1924562)
 #creamos la partición
@@ -56,8 +56,8 @@ mc_knn=table(prediKnn,prueba$LESION)
 exac_knn=sum(diag(mc_knn))/sum(mc_knn)
 exac_knn
 
-saveRDS(knn,"Knn_almacen2000.rds")
-#knn=readRDS("Knn_almacen2000.rds")
+saveRDS(knn,"Knn_dataset2500.rds")
+#knn=readRDS("Knn_dataset2500.rds")
 
 #regla fissher 
 #method= "lda"
