@@ -57,3 +57,25 @@ write_nifti(nim=S1_T1_BRAIN,filename = "S1_T1_BRAIN")
 ##TISSUE SEGMENTATION
 
 ##NORMALIZATION
+
+
+
+
+
+#PRUEBAS EN LA APP
+FLAIR = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/S1_FLAIR_BRAIN.nii.gz")
+T1 = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/S1_T1_BRAIN.nii.gz")
+FLAIR_SYM=antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_FLAIR_SIMETRICA.nii.gz")
+FLAIR_ASYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_FLAIR_ASIMETRICA.nii.gz")
+T1_SYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_T1_SIMETRICA.nii.gz")
+T1_ASYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_T1_ASIMETRICA.nii.gz")
+listaImagenes = list(FLAIR,T1,FLAIR_SYM,FLAIR_ASYM,T1_SYM,T1_ASYM)
+source("obtenCoord.R")
+source("predice.R")
+source("preprocesadoPaciente.R")
+source("recorreImagenes.R")
+source("eligeVoxelPaciente.R")
+source("valoresImagen.R")
+source("sacoValorVecinos.R")
+source("aplicaFuncion.R")
+source("resultado.R")
