@@ -8,6 +8,6 @@ resultado<-function(IMAGEN,COORDENADAS,PREDICCION){
     cor=obtenCoord(valoresLesion[i],IMAGEN)
     lesiones[cor[1],cor[2],cor[3]]=1
   }
-  copi=maskImage(FLAIR,arr)
+  copi=maskImage(FLAIR,lesiones)
   ortho2(FLAIR,copi,col.y = "red")
 }
