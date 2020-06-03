@@ -16,7 +16,9 @@ library(RNifti)
 library(caret)
 library(randomForest)
 library(shinythemes)
-
+#source("eligeVoxelPaciente.R")
+#source("obtencionDatasetPaciente.R")
+#source("preprocesadoPaciente.R")
 
 read_image_as_array<-function(path){
   nift=antsImageRead(path)
@@ -60,11 +62,9 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                              )),
                     tabPanel("Preprocesado",
                              sidebarLayout(titlePanel("Descripción"),mainPanel(tags$hr(),width=24,
-                               tags$article("Aquí prepararemos sus imágenes. En este proceso, aplicaremos a sus imágenes el siguiente flujo de subrutinas. Esto puede tardar varios minutos.
-                                aquí pondría alguna señal de por que parte va el procesado de las imágenes/loading correcion n3 90%",
-                               ),
+                               tags$article("Aquí prepararemos sus imágenes. En este proceso, aplicaremos a sus imágenes el siguiente flujo de subrutinas. Esto puede tardar varios minutos"),
                                actionButton("preprocesado","Comenzar Prepreocesado"),
-                               tags$h6(textOutput("preprocesando"))),
+                               tags$h6(textOutput("Preprocesando"))),
                                #tags$h4("Flujo de Preprocesado"),
                              ),
                             withSpinner(imageOutput("flujoPreprocesado")),
@@ -90,8 +90,11 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                         column(3,tags$h5("NAIVE BAYES")),
                         column(3,tags$h5("KNN")),
                         column(3,tags$h5("Comité Expertos"),textOutput("nombrez"))
-                        )
-                    )))
+                        ),actionButton("mostrarResultados","Mostrar resultados"),
+                      fluidRow(
+                        column(3,column(6,withSpinner(plotOutput("resRF",width = 400,height = 400))))
+                      )
+                      )))
                 
 server <- function(input, output,session) {
   options(shiny.maxRequestSize = 500*1024^2)
@@ -129,6 +132,7 @@ server <- function(input, output,session) {
   output$plotFLAIR<-renderPlot({
     ortho2(app_imagenes()[[1]])
   })
+
   #Muestra la Imagen T1 Subida
   output$plotT1<-renderPlot({
     ortho2(app_imagenes()[[2]])
@@ -141,9 +145,9 @@ server <- function(input, output,session) {
   imagenes<-eventReactive(input$preprocesado,{
     withProgress(
       if(TRUE){
-        listaImagenes=list()
-        #listaImagenes=preprocesadoPaciente(app_imagenes)
-        return(listaImagenes)
+        listaImag=listaImagenes
+        #listaImagenes=preprocesadoPaciente(app_imagenes())
+        return(listaImag)
       }
     , message = "Preprocesando las Imágenes")
   })
@@ -153,22 +157,45 @@ server <- function(input, output,session) {
   output$preprocesando<-eventReactive(input$preprocesado,{
     "Iniciando preprocesado."
   })
+  observeEvent(input$preprocesado,{
+    print(length(imagenes()))
+  })
   
   
   #Obtención Características
+  coordenadas<-eventReactive(input$executeFeatures,{
+    eligeVoxelPaciente(imagenes()[[1]])
+    })
+  
   datosPaciente<-eventReactive(input$executeFeatures,{
-    datos=prueba
-    #datos=preprocesadoPaciente(imagenes)
-    return(datos)
+    withProgress(
+      if(TRUE){
+        #coordenadas=eligeVoxelPaciente(imagenes()[[1]])
+        if(!is.null(coordenadas)){
+          datos=recorreImagenes(imagenes(),coordenadas())
+          features=aplicaFuncion(datos,c(mean,min,max,sd,median))
+          lesiones=c(rep(0,nrow(features)))
+          features = cbind2(features,lesiones)
+        }
+        return(features)
+      },
+      message = "Sacando características",
+      detail = "Esto puede tardar unos minutos")
   })
   output$features<-eventReactive(input$executeFeatures,{
     paste0("Comenzando Extracción de Características. ",
     "Este proceso puede tardar varios minutos.")
   })
-  
+  observeEvent(input$executeFeatures,{
+    print("obtencaract")
+    print(ncol(datosPaciente()))
+    print((head(datosPaciente())))
+    sol = matrix(datosPaciente(),nrow = nrow(datosPaciente()),ncol=ncol(datosPaciente()))
+    print(head(sol))
+  })
   
   #Cargar modelos
-  modelos<-eventReactive(input$cargaModelos,{
+  modeloRf<-eventReactive(input$cargaModelos,{
     #modelos = input$ml
     withProgress(
       if(TRUE){
@@ -225,11 +252,20 @@ server <- function(input, output,session) {
   observeEvent(input$cargaModelos,{
     print("he clickeado cargamodelos")
     print(input$ml[[1]]=="rf")
-    print(str(modelos()))
+    print(str(modeloRf()))
+  })
+  resultados<-eventReactive(input$predice,{
+    predi_rf=predice(modeloRf(),datosPaciente())
+    return(predi_rf)
+  })
+  observeEvent(input$predice,{
+    print(resultados())
+  })
+  output$resRF<-renderPlot({
+    resultado(imagenes()[[1]],coordenadas(),resultados())
   })
   #Cuando el usuario hace click en Comenzar preprocesado, se realiza el prepro y se generan las demás imágenes
   print("desppues")
 }
-
 # Run the application 
 shinyApp(ui = ui, server = server)
