@@ -1,4 +1,5 @@
 predice<-function(MODELO,DATOS){
+  DATOS = as.data.frame(DATOS)
   nombrecolumnas = c("MEAN_FLAIR","MIN_FLAIR","MAX_FLAIR","SD_FLAIR","MEDIAN_FLAIR",
                      "MEAN_T1","MIN_T1","MAX_T1","SD_T1","MEDIAN_T1",
                      "MEAN_FLAIR_SYM","MIN_FLAIR_SYM","MAX_FLAIR_SYM","SD_FLAIR_SYM","MEDIAN_FLAIR_SYM",
@@ -7,7 +8,7 @@ predice<-function(MODELO,DATOS){
                      "MEAN_T1_ASYM","MIN_T1_ASYM","MAX_T1_ASYM","SD_T1_ASYM","MEDIAN_T1_ASYM",
                      "LESION")
   colnames(DATOS)<-nombrecolumnas
-  #DATOS$LESION=factor(DATOS$LESION)
+  DATOS[,ncol(DATOS)]=factor(DATOS[,ncol(DATOS)])
   set.seed(1924562)
   prediModelo=c(predict(MODELO,DATOS))-1
   #devuelve un vector de tipo factor indicando que vóxeles son sano y que voxeles son lesion
