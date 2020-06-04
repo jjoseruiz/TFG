@@ -4,6 +4,7 @@ aplicaFuncion<-function(vecinos,listaFunciones)
   n = ncol(vecinos)/27
   listaFeatures = matrix(nrow = nrow(vecinos),ncol = length(listaFunciones)*n)
     for(i in 1:nrow(vecinos)){
+      print(paste0("funcion voxel-> ",i))
       lista = list()
       #variables auxiliares
       c=0
@@ -19,15 +20,7 @@ aplicaFuncion<-function(vecinos,listaFunciones)
         #almacenamos en lista los vectores de los valores cada imagen correspondientes al vóxel iésimo
         lista = c(lista,valuesk)
       }
-      #aplicamos la función jésima a cada elemento de la lista
-      #for (j in 1:length(listaFunciones)){
-       # features = c(lapply(lista,listaFunciones[[j]]))
-        #lo convertimos en vector
-        #feat = c()
-        #for(l in 1:length(features)){
-         # feat = c(feat,features[[l]])
-        #}
-        #por cada elemento de la lista, aplicamos todas las funciones
+
         for(j in 1:length(lista)){
           for(l in 1:length(listaFunciones)){
             featj = listaFunciones[[l]](lista[[j]])
@@ -35,15 +28,7 @@ aplicaFuncion<-function(vecinos,listaFunciones)
           }
           sum = length(listaFunciones)+sum
         }
-        #repartimos el resultado de la función en las columnas de la matriz 
-        #razon reparto.
-        #r = ncol(listaFeatures)/n
-        #b=0
-        #while(b<(length(listaFunciones)-2)){
-         # listaFeatures[i,j+b*r]=feat[b+1]
-          #b=b+1
-        #}
-      #}
+
     }
   return (listaFeatures)
 }
