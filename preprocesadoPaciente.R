@@ -30,7 +30,7 @@ preprocesadoPaciente<-function(listaImagenes){
     template.structs = imgs$mask,
     keep_images = FALSE,
     typeofTransform="AffineFast",
-    interpolator = "Lineas"
+    interpolator = "linear"
   )
   flair_extr=maskImage(flairReg,mFlair)
   t1_extr=maskImage(t1Reg,mT1)
