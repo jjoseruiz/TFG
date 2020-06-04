@@ -26,7 +26,7 @@ read_image_as_array<-function(path){
   return(nift[,,,])
 }
 
-ui <- fluidPage(theme=shinytheme("cerulean"),
+ui <- fluidPage(theme=shinytheme("spacelab"),
                 titlePanel("Detección de lesiones"),
                 navbarPage("MS LESION DETECTION",
                     tabPanel("Inicio",
@@ -46,7 +46,7 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                                vía Imágenes de resonancia Magnética basandonos en modelos de machine Learning"
                                )),
                              sidebarLayout(titlePanel("Flujo de funcionamiento"),mainPanel(
-                               tags$div(img(src="Flujo de aplicacion,jpg"))
+                              withSpinner(plotOutput("imagenINICIO",width=400,height = 400))
                              ))),
                     tabPanel("Subir Imagenes",
                              titlePanel("Sube aquí sus imágenes"),
@@ -54,7 +54,7 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                              tags$hr(),
                              fluidRow(column(4,fileInput("ImagenFlair","FLAIR", multiple = FALSE, accept = c(".nii",".nii.gz"),placeholder = "Suba su imagen FLAIR")),
                                       column(4,fileInput("ImagenT1","T1", multiple = FALSE, accept = c(".nii",".nii.gz"),placeholder = "Suba su imagen T1")),
-                                      column(4,actionButton("botonSubir","Subir imagenes"),
+                                      column(4,actionButton("botonSubir",tags$base("Subir imagenes")),
                                              tags$h6(textOutput(outputId="clics")))
                              ),
                              fluidRow(column(6,withSpinner(plotOutput("plotFLAIR",width = 400,height = 400,"FLAIR"))),
@@ -63,7 +63,7 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                     tabPanel("Preprocesado",
                              sidebarLayout(titlePanel("Descripción"),mainPanel(tags$hr(),width=24,
                                tags$article("Aquí prepararemos sus imágenes. En este proceso, aplicaremos a sus imágenes el siguiente flujo de subrutinas. Esto puede tardar varios minutos"),
-                               actionButton("preprocesado","Comenzar Prepreocesado"),
+                               actionButton("preprocesado",tags$base("Comenzar Prepreocesado")),
                                tags$h6(textOutput("Preprocesando"))),
                                #tags$h4("Flujo de Preprocesado"),
                              ),
@@ -72,33 +72,41 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                     tabPanel("Obtención de características",
                              titlePanel("Descripción"),
                              mainPanel("A continuación, la aplicación sacará las características de las MRI.",
-                               actionButton("executeFeatures","Obtención dataset"),
+                               actionButton("executeFeatures",tags$base("Obtención dataset")),
                                tags$h6(textOutput("features"))
                              )),
                     tabPanel("Predicción",
                              sidebarLayout(titlePanel("¿Qué modelos de Machine Learning desea aplicar?"),mainPanel(
                                checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","K-Nearest-Neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb")),
-                               fluidRow(column(6,actionButton("cargaModelos",tags$h5("Carga seleccionados")),
+                               fluidRow(column(6,actionButton("cargaModelos",tags$base("Cargar seleccionados")),
                                tags$h6(textOutput("textCargado"))),
-                               column(6,actionButton("predice",tags$h5("Predecir Lesiones")))
+                               column(6,actionButton("predice",tags$base("Predecir Lesiones")),tags$h6(textOutput("textPred")))
                                )
                              ))),
                     tabPanel(
                       "Resultados",
                         fluidRow(
-                        column(3,tags$h5("RANDOM FOREST")),
-                        column(3,tags$h5("NAIVE BAYES")),
-                        column(3,tags$h5("KNN")),
-                        column(3,tags$h5("Comité Expertos"),textOutput("nombrez"))
-                        ),actionButton("mostrarResultados","Mostrar resultados"),
+                        column(12,offset = 4, tags$h5("RANDOM FOREST"),withSpinner(plotOutput("resRF",width = 600,height = 600)))),
+                        fluidRow(
+                        column(12,offset = 4,tags$h5("NAIVE BAYES"),withSpinner(plotOutput("resNB",width = 600,height = 600)))),
+                        fluidRow(
+                        column(12,offset = 4, tags$h5("KNN"),withSpinner(plotOutput("resKNN",width = 600,height = 600)))),
+                        fluidRow(
+                        column(12,offset = 4, tags$h5("Comité Expertos"))
+                        ),
                       fluidRow(
-                        column(3,column(6,withSpinner(plotOutput("resRF",width = 400,height = 400))))
-                      )
+                        #column(3,column(6,withSpinner(plotOutput("resRF",width = 400,height = 400)))),
+                        #column(3,column(6,withSpinner(plotOutput("resKNN",width = 400,height = 400)))),
+                        #column(3,column(6,withSpinner(plotOutput("resNB",width = 400,height = 400))))
+                      ),
+                      uiOutput("raster_panel")
                       )))
                 
 server <- function(input, output,session) {
   options(shiny.maxRequestSize = 500*1024^2)
-  
+  output$inicioIMAGEN<-renderPlot({
+    img(src="Flujo de aplicacion,jpg")
+  })
   #Subir imagenes
   app_imagenes<-eventReactive(input$botonSubir,{
     withProgress(
@@ -199,71 +207,136 @@ server <- function(input, output,session) {
     #modelos = input$ml
     withProgress(
       if(TRUE){
-        model=list()
-        if(!is.null(input$ml)){
-          for(i in 1:length(input$ml)){
-            if(input$ml[[i]]==("rf")){
+        val=which(is.element(input$ml,"rf")==TRUE)
+        if(length(val>0)){
               modelRf=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/RandomForest_dataset2500.rds")
-            }
-            return(modelRf)
-          }
-        }
+              return(modelRf)
+         }
       },
-      message = "Cargando y ejecutando los modelos",
+      message = "Cargando RANDOM FOREST. ",
       detail = "Este proceso puede tardar unos minutos")
   })
   modeloKnn<-eventReactive(input$cargaModelos,{
     #modelos = input$ml
     withProgress(
       if(TRUE){
-        if(!is.null(input$ml)){
-          for(i in 1:length(input$ml)){
-            if(input$ml[[i]]==("knn")){
-              knn=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Knn_dataset2500.rds")
-            }
-            retrun(knn)
+        val=which(is.element(input$ml,"knn")==TRUE)
+        if(length(val)>0){
+            knn=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Knn_dataset2500.rds")
+            return(knn)
           }
-        }
-      },
-      message = "Cargando y ejecutando los modelos",
+    },
+      message = "Cargando KNN. ",
       detail = "Este proceso puede tardar unos minutos")
   })
   modeloNb<-eventReactive(input$cargaModelos,{
     withProgress(
       if(TRUE){
-        if(!is.null(input$ml)){
-          for(i in 1:length(input$ml)){
-            if(input$ml[[i]]==("nv")){
-              nb=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Bayesian_dataset2500.rds")
-            }
+        val=which(is.element(input$ml,"nb")==TRUE)
+        if(length(val)>0){
+            nb=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Bayesian_dataset2500.rds")
             return(nb)
           }
-        }
       },
-      message = "Cargando y ejecutando los modelos",
+      message = "Cargando NAIVE BAYES.",
       detail = "Este proceso puede tardar unos minutos")
   })
   
   output$textCargado<-eventReactive(input$cargaModelos,{
     if(is.null(input$ml)){
       "Selecciona algún modelo."
+    }else{
+      "Modelos cargados."
     }
   })
+
   observeEvent(input$cargaModelos,{
     print("he clickeado cargamodelos")
-    print(input$ml[[1]]=="rf")
-    print(str(modeloRf()))
+    #print(input$ml[[2]]=="knn")
+    print(paste0("Cargado Naive Bayes = ",!is.null((modeloNb()))))
+    print(paste0("Cargado Random Forest = ",!is.null(modeloRf())))
+    print(paste0("Cargado Knn = ",!is.null(modeloKnn())))
   })
-  resultados<-eventReactive(input$predice,{
-    predi_rf=predice(modeloRf(),datosPaciente())
-    return(predi_rf)
+  resultadoRF<-eventReactive(input$predice,{
+    if(!is.null(modeloRf())){
+      withProgress(
+        if(TRUE){
+            print("RandomForest")
+            predi_rf=predice(modeloRf(),datosPaciente())
+            return(predi_rf)
+        },message = "Predicienco con Random Forest",
+        detail = "Esto puede tardar algunos minutos."
+      )
+    }
   })
-  observeEvent(input$predice,{
-    print(resultados())
+  resultadoNB<-eventReactive(input$predice,{
+    if(!is.null(modeloNb())){
+      withProgress(
+        if(TRUE){
+          print("NB")
+          predi_nb=predice(modeloNb(),datosPaciente())
+          return(predi_nb)
+        },message = "Prediciendo con Naive Bayes.",
+        detail = "Esto puede tardar algunos minutos."
+      )
+    }
   })
-  output$resRF<-renderPlot({
-    resultado(imagenes()[[1]],coordenadas(),resultados())
+  resultadoKnn<-eventReactive(input$predice,{
+    if(!is.null(modeloKnn())){
+      withProgress(
+        if(TRUE){
+          print("KNN")
+          predi_knn=predice(modeloKnn(),datosPaciente())
+          return(predi_knn)
+        },message = "Prediciendo con KNN.",
+        detail = "Esto puede tardar algunos minutos."
+      )
+    }
+
   })
+
+  output$textPred<-eventReactive(input$predice,{
+    withProgress(
+      if(TRUE){
+        "Predicción Realizada"
+      },message = "REALIZANDO PREDICCIONES.",
+      detail = "Este proceso puede tardar unos minutos."
+    )
+  })
+    output$resRF<-renderPlot({
+      if(!is.null(modeloRf())){
+        withProgress(
+          if(TRUE){
+            resultado(imagenes()[[1]],coordenadas(),resultadoRF())
+          },message = "Representando Imagen RF. ",
+          detail = "Esto puede tardar unos segundos."
+        )
+      }
+    })
+    output$resNB<-renderPlot({
+      if(!is.null(modeloNb())){
+        withProgress(
+          if(TRUE){
+            resultado(imagenes()[[1]],coordenadas(),resultadoNB())
+          },message = "Representando Imagen NB. ",
+          detail = "Esto puede tardar unos minutos."
+        )
+      }
+    })
+    output$resKNN<-renderPlot({
+      if(!is.null(modeloKnn())){
+        withProgress(
+          if(TRUE){
+            resultado(imagenes()[[1]],coordenadas(),resultadoKnn())
+            #resultado(FLAIR,COORDENADAS,predi_knn)
+          },message=("Representando Imagen KNN. "),
+          detail = "Esto puede tardar unos segundos."
+        )
+      }
+    })
+
+
+  
   #Cuando el usuario hace click en Comenzar preprocesado, se realiza el prepro y se generan las demás imágenes
   print("desppues")
 }
