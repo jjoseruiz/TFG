@@ -4,7 +4,10 @@ aplicaFuncion<-function(vecinos,listaFunciones)
   n = ncol(vecinos)/27
   listaFeatures = matrix(nrow = nrow(vecinos),ncol = length(listaFunciones)*n)
     for(i in 1:nrow(vecinos)){
-      print(paste0("funcion voxel-> ",i))
+      if(i == round(nrow(vecinos)/2)){
+        print("POR LA MITAD")
+      }
+      #print(paste0("funcion voxel-> ",i))
       lista = list()
       #variables auxiliares
       c=0
@@ -28,7 +31,6 @@ aplicaFuncion<-function(vecinos,listaFunciones)
           }
           sum = length(listaFunciones)+sum
         }
-
     }
   return (listaFeatures)
 }
