@@ -1,4 +1,4 @@
-elegirVoxeles<-function(num_voxel,mascara_gt)
+elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
 {
   #creamos una funcion a parte para comprobar si una coordenada ya estaba introducida
   source("estaEnLista.R")
@@ -12,7 +12,8 @@ elegirVoxeles<-function(num_voxel,mascara_gt)
       mascara = as.nifti(mascara_gt)
     }
     lesion = which(ants_mascara>0)
-    sano = which(ants_mascara<1)
+    #eliminamos fondos y nos quedamos con solo cerebro
+    sano = which(ants_mascara<1 & FLAIR>0)
     i  = 0
     j = 0
     indices = matrix(nrow = num_voxel,ncol = 3) 
