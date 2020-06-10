@@ -3,11 +3,13 @@ resultado<-function(IMAGEN,COORDENADAS,PREDICCION){
   cordenadas=c(COORDENADAS)
   prediccion=c(PREDICCION)
   valoresLesion=which(cordenadas&prediccion==TRUE)
-  lesiones=array(data=rep(0,192*512*512),dim=c(192,512,512))
+  lesiones=array(data=rep(0,dim(IMAGEN)[1]*dim(IMAGEN)[2]*dim(IMAGEN[3])),dim=dim(IMAGEN))
   for(i in 1:length(valoresLesion)){
     cor=obtenCoord(cordenadas[valoresLesion[[i]]],IMAGEN)
     lesiones[cor[1],cor[2],cor[3]]=1
   }
   copi=maskImage(FLAIR,lesiones)
-  ortho2(FLAIR,copi,col.y = "red",useRaster = TRUE)
+  copi[copi>0]=1
+  #ortho2(FLAIR,copi,col.y = "red",useRaster = TRUE)
+  return(copi)
 }
