@@ -16,6 +16,10 @@ library(RNifti)
 library(caret)
 library(randomForest)
 library(shinythemes)
+library(modeest)
+library(papayar)
+library(papayaWidget)
+library(OpenImageR)
 #source("eligeVoxelPaciente.R")
 #source("obtencionDatasetPaciente.R")
 #source("preprocesadoPaciente.R")
@@ -26,7 +30,7 @@ read_image_as_array<-function(path){
   return(nift[,,,])
 }
 
-ui <- fluidPage(theme=shinytheme("spacelab"),
+ui <- fluidPage(theme=shinytheme("cerulean"),
                 titlePanel("Detección de lesiones"),
                 navbarPage("MS LESION DETECTION",
                     tabPanel("Inicio",
@@ -38,15 +42,15 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                                pérdida de memoria, hormigueo o incluso parálisis.  A pesar de los grandes avances 
                                en medicina y tecnología, aún se desconoce el origen de la enfermedad, sin embargo, 
                                podemos estudiarla y diagnosticarla a través de herramientas como las Imágenes de Resonancia Magnética. 
-                               Es por esto que, en ocasiones los médicos expertos en diagnóstico por imágenes, tengan serias dificultades para interpretar las lesiones ocasionadas por la enfermedad en el cerebro."
+                               Es por esto, que en ocasiones los médicos expertos en diagnóstico por imágenes, tienen serias dificultades para interpretar las lesiones ocasionadas por la enfermedad en el cerebro."
                               )),
                              sidebarLayout(titlePanel("Descripción"),mainPanel(tags$hr(),width=24,
                                "MS LESION DETECTION es una aplicación web enfocada a la 
                                detección de lesiones cerebrales relacionadas con la Esclerosis Múltiple 
                                vía Imágenes de resonancia Magnética basandonos en modelos de machine Learning"
                                )),
-                             sidebarLayout(titlePanel("Flujo de funcionamiento"),mainPanel(
-                              withSpinner(plotOutput("imagenINICIO",width=400,height = 400))
+                             sidebarLayout(titlePanel("Flujo de funcionamiento"),mainPanel(tags$hr(),
+                              withSpinner(plotOutput("imagenINICIO",width=800,height = 700))
                              ))),
                     tabPanel("Subir Imagenes",
                              titlePanel("Sube aquí sus imágenes"),
@@ -57,8 +61,8 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                                       column(4,actionButton("botonSubir",tags$base("Subir imagenes")),
                                              tags$h6(textOutput(outputId="clics")))
                              ),
-                             fluidRow(column(6,withSpinner(plotOutput("plotFLAIR",width = 400,height = 400,"FLAIR"))),
-                                      column(6,withSpinner(plotOutput("plotT1",width = 400,height = 400,"T1"))),
+                             fluidRow(column(6,withSpinner(plotOutput("plotFLAIR",width = 400,height = 400))),
+                                      column(6,withSpinner(plotOutput("plotT1",width = 400,height = 400))),
                              )),
                     tabPanel("Preprocesado",
                              sidebarLayout(titlePanel("Descripción"),mainPanel(tags$hr(),width=24,
@@ -67,7 +71,7 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                                tags$h6(textOutput("Preprocesando"))),
                                #tags$h4("Flujo de Preprocesado"),
                              ),
-                            withSpinner(imageOutput("flujoPreprocesado")),
+                            withSpinner(plotOutput("flujoPreprocesado",width = 1000,height = 600)),
                     ),
                     tabPanel("Obtención de características",
                              titlePanel("Descripción"),
@@ -87,12 +91,12 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                       "Resultados",
                         fluidRow(
                         column(12,offset = 4, tags$h5("RANDOM FOREST"),withSpinner(plotOutput("resRF",width = 600,height = 600)))),
+                      fluidRow(
+                        column(12,offset = 4, tags$h5("KNN"),withSpinner(plotOutput("resKNN",width = 600,height = 600)))),
                         fluidRow(
                         column(12,offset = 4,tags$h5("NAIVE BAYES"),withSpinner(plotOutput("resNB",width = 600,height = 600)))),
                         fluidRow(
-                        column(12,offset = 4, tags$h5("KNN"),withSpinner(plotOutput("resKNN",width = 600,height = 600)))),
-                        fluidRow(
-                        column(12,offset = 4, tags$h5("Comité Expertos"))
+                        column(12,offset = 4, tags$h5("Comité Expertos"),withSpinner(plotOutput("resComite",width = 600,height = 600)))
                         ),
                       fluidRow(
                         #column(3,column(6,withSpinner(plotOutput("resRF",width = 400,height = 400)))),
@@ -104,8 +108,9 @@ ui <- fluidPage(theme=shinytheme("spacelab"),
                 
 server <- function(input, output,session) {
   options(shiny.maxRequestSize = 500*1024^2)
-  output$inicioIMAGEN<-renderPlot({
-    img(src="Flujo de aplicacion,jpg")
+  output$imagenINICIO<-renderPlot({
+    flux = OpenImageR::readImage("Flujo de aplicacion.jpg")
+    imageShow(flux)
   })
   #Subir imagenes
   app_imagenes<-eventReactive(input$botonSubir,{
@@ -138,13 +143,16 @@ server <- function(input, output,session) {
   })
   #Muestra la imagen FLAIR subida
   output$plotFLAIR<-renderPlot({
-    ortho2(app_imagenes()[[1]])
+    if(!is.null(input$ImagenFlair) & !is.null(input$ImagenT1)){
+      ortho2(app_imagenes()[[1]])
+    }
   })
 
   #Muestra la Imagen T1 Subida
   output$plotT1<-renderPlot({
-    ortho2(app_imagenes()[[2]])
-  })
+    if(!is.null(input$ImagenFlair) & !is.null(input$ImagenT1)){
+      ortho2(app_imagenes()[[2]])
+    }  })
   observeEvent(input$botonSubir,{
     print("he clickeado")
   })
@@ -159,8 +167,9 @@ server <- function(input, output,session) {
       }
     , message = "Preprocesando las Imágenes")
   })
-  output$imagenPreprocesado<-renderPlot({
-    list(src="/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/MS_LESION_DETECTION/Flujo preprocesado.png",contentType = "image/png",width=400,height=400)
+  output$flujoPreprocesado<-renderPlot({
+    flux = OpenImageR::readImage("Flujo preprocesado.png")
+    imageShow(flux)
   })
   output$preprocesando<-eventReactive(input$preprocesado,{
     "Iniciando preprocesado."
@@ -179,7 +188,7 @@ server <- function(input, output,session) {
     withProgress(
       if(TRUE){
         #coordenadas=eligeVoxelPaciente(imagenes()[[1]])
-        if(!is.null(coordenadas)){
+        if(!is.null(coordenadas())){
           datos=recorreImagenes(imagenes(),coordenadas())
           features=aplicaFuncion(datos,c(mean,min,max,sd,median))
           lesiones=c(rep(0,nrow(features)))
@@ -263,6 +272,7 @@ server <- function(input, output,session) {
         if(TRUE){
             print("RandomForest")
             predi_rf=predice(modeloRf(),datosPaciente())
+            print("FIN PREDICCION RF")
             return(predi_rf)
         },message = "Predicienco con Random Forest",
         detail = "Esto puede tardar algunos minutos."
@@ -275,6 +285,8 @@ server <- function(input, output,session) {
         if(TRUE){
           print("NB")
           predi_nb=predice(modeloNb(),datosPaciente())
+          print("FIN PREDICCION NB")
+          print(predi_nb)
           return(predi_nb)
         },message = "Prediciendo con Naive Bayes.",
         detail = "Esto puede tardar algunos minutos."
@@ -287,55 +299,82 @@ server <- function(input, output,session) {
         if(TRUE){
           print("KNN")
           predi_knn=predice(modeloKnn(),datosPaciente())
+          print("FIN PREDICCION KNN")
           return(predi_knn)
         },message = "Prediciendo con KNN.",
         detail = "Esto puede tardar algunos minutos."
       )
     }
-
   })
-
   output$textPred<-eventReactive(input$predice,{
-    withProgress(
-      if(TRUE){
-        "Predicción Realizada"
-      },message = "REALIZANDO PREDICCIONES.",
-      detail = "Este proceso puede tardar unos minutos."
-    )
+    "Predicción realizada"
   })
-    output$resRF<-renderPlot({
-      if(!is.null(modeloRf())){
-        withProgress(
-          if(TRUE){
-            resultado(imagenes()[[1]],coordenadas(),resultadoRF())
-          },message = "Representando Imagen RF. ",
-          detail = "Esto puede tardar unos segundos."
+  output$resRF<-renderPlot({
+    if(!is.null(resultadoRF())){
+      withProgress(
+        if(TRUE){
+          print("MOSTRANDO RF")
+          resultado(imagenes()[[1]],coordenadas(),resultadoRF())
+        },message = "Representando Imagen RF. ",
+        detail = "Esto puede tardar unos segundos."
+      )
+    }
+  })
+  output$resNB<-renderPlot({
+    if(!is.null(resultadoNB())){
+      withProgress(
+        if(TRUE){
+          print("MOSTRANDO NB")
+          #resultado(imagenes()[[1]],coordenadas(),resultadoNB())
+        },message = "Representando Imagen NB. ",
+        detail = "Esto puede tardar unos minutos."
         )
+    }
+  })
+  output$resKNN<-renderPlot({
+    if(!is.null(resultadoKnn())){
+      withProgress(
+        if(TRUE){
+          print("MOSTRANDO KNN")
+          #resultado(imagenes()[[1]],coordenadas(),resultadoKnn())
+          #resultado(FLAIR,COORDENADAS,predi_knn)
+        },message=("Representando Imagen KNN. "),
+        detail = "Esto puede tardar unos segundos."
+      )
+    }
+  })
+  
+  output$resComite<-renderPlot({
+    lista = list()
+    if(!is.null(resultadoRF())){
+      rf=resultadoRF()
+      lista=lappend(lista,rf)
+    }
+    if(!is.null(resultadoNB())){
+      nb=resultadoNB()
+      lista=lappend(lista,nb)
+    }
+    if(!is.null(resultadoKnn())){
+      knn=resultadoKnn()
+      lista=lappend(lista,knn)
+    }
+    numMode=length(lista)
+    if(numMode>1){
+      comite=c(1:length(coordenadas()))
+      if(numMode==2){
+        for(i in 1:length(resultado))
+        {
+          comite[i]=mfv(c(lista[[1]][i],lista[[2]][i])-1)
+        }
+      }else{
+        for(i in 1:length(resultado))
+        {
+          comite[i]=mfv(c(lista[[1]][i],lista[[2]][i],lista[[3]][i])-1)
+        }
       }
-    })
-    output$resNB<-renderPlot({
-      if(!is.null(modeloNb())){
-        withProgress(
-          if(TRUE){
-            resultado(imagenes()[[1]],coordenadas(),resultadoNB())
-          },message = "Representando Imagen NB. ",
-          detail = "Esto puede tardar unos minutos."
-        )
-      }
-    })
-    output$resKNN<-renderPlot({
-      if(!is.null(modeloKnn())){
-        withProgress(
-          if(TRUE){
-            resultado(imagenes()[[1]],coordenadas(),resultadoKnn())
-            #resultado(FLAIR,COORDENADAS,predi_knn)
-          },message=("Representando Imagen KNN. "),
-          detail = "Esto puede tardar unos segundos."
-        )
-      }
-    })
-
-
+      resultado(imagenes()[[1]],coordenadas(),comite)
+    }
+})
   
   #Cuando el usuario hace click en Comenzar preprocesado, se realiza el prepro y se generan las demás imágenes
   print("desppues")
