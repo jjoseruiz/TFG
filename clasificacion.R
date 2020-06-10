@@ -5,6 +5,7 @@ library(rpart)
 library(rpart.plot)
 library(dplyr)
 library(randomForest)
+library(modeest)
 dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset2500_asymsym")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
