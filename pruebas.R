@@ -59,16 +59,25 @@ write_nifti(nim=S1_T1_BRAIN,filename = "S1_T1_BRAIN")
 ##NORMALIZATION
 
 
-
+#Prueba preprocesadoPaciente.
+library(neurobase)
+library(ANTsR)
+library(ANTsRCore)
+library(extrantsr)
+library(oro.nifti)
+library(malf.templates)
+flair=antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/patient11-15/patient11/raw/patient11_FLAIR.nii.gz")
+t1=antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/patient11-15/patient11/raw/patient11_T1W.nii.gz")
+listaImagenes = preprocesadoPaciente(list(flair,t1))
 
 
 #PRUEBAS EN LA APP
-FLAIR = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/S1_FLAIR_BRAIN.nii.gz")
-T1 = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/S1_T1_BRAIN.nii.gz")
-FLAIR_SYM=antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_FLAIR_SIMETRICA.nii.gz")
-FLAIR_ASYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_FLAIR_ASIMETRICA.nii.gz")
-T1_SYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_T1_SIMETRICA.nii.gz")
-T1_ASYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S1_T1_ASIMETRICA.nii.gz")
+FLAIR = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/S11_FLAIR_BRAIN.nii.gz")
+T1 = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/S11_T1_BRAIN.nii.gz")
+FLAIR_SYM=antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S11_FLAIR_SIMETRICA.nii.gz")
+FLAIR_ASYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S11_FLAIR_ASIMETRICA.nii.gz")
+T1_SYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S11_T1_SIMETRICA.nii.gz")
+T1_ASYM = antsImageRead("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/S11_T1_ASIMETRICA.nii.gz")
 listaImagenes = list(FLAIR,T1,FLAIR_SYM,FLAIR_ASYM,T1_SYM,T1_ASYM)
 source("obtenCoord.R")
 source("predice.R")
@@ -79,3 +88,14 @@ source("valoresImagen.R")
 source("sacoValorVecinos.R")
 source("aplicaFuncion.R")
 source("resultado.R")
+#proceso para predecir
+cordis = eligeVoxelPaciente(FLAIR)
+vecinos = recorreImagenes(listaImagenes,cordis)
+listaFunciones = c(mean,min,max,sd,median)
+features = aplicaFuncion(vecinos,listaFunciones)
+lesiones=c(rep(0,nrow(features)))
+features = cbind2(features,lesiones)
+#modelo = readRDS("Knn_dataset2500.rds")
+modelo = readRDS("RandomForest_dataset2500.rds")
+prediccion = predice(modelo,features)
+res = resultado(FLAIR,cordis,prediccion)
