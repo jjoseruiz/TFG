@@ -11,7 +11,7 @@ source("devuelveImagenes.R")
 source("aplicaFuncion.R")
 source("sacoValorVecinos.R")
 listaFunciones = c(mean,min,max,sd,median)
-numero_voxeles = 2500
+numero_voxeles = 5000
 nSujetos = 30
 num_images_sujeto = 6
 numImagenes = nSujetos*num_images_sujeto
@@ -36,9 +36,9 @@ for(l in 1:nSujetos){
   rots = list(rootflairl,roott1l,rootflairsyml,rootflairasyml,roott1syml,roott1asyml)
   print("Leyendo imagenes")
   mismoSujeto = lapply(rots,antsImageRead)
-  consenso =antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/CONSENSO/","S",l,"_CONSENSO.nii.gz"))
+  consenso = antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/CONSENSO/","S",l,"_CONSENSO.nii.gz"))
   
-  coordenadas = elegirVoxeles(numero_voxeles,consenso)
+  coordenadas = elegirVoxeles(numero_voxeles,consenso,mismoSujeto[[1]])
   vecinos = recorreImagenes(mismoSujeto,coordenadas)
   
   #i será el número de imágenes y j el número de vóxeles por imagen
@@ -49,7 +49,7 @@ for(l in 1:nSujetos){
   almacen[(j+1):(j+nrow(dataset)/2),ncol(almacen)]=1
   almacen[((j+nrow(dataset)/2)+1):(j+nrow(dataset)),ncol(almacen)]=0
   j=j+nrow(dataset)
-  print(paste0("dataset sujeto ",l))
+  print(paste0("dataset añadido sujeto --> ",l))
 }
-write.csv(almacen,"dataset2500_asymsym")
+write.csv(almacen,"dataset5000")
 
