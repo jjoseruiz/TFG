@@ -6,7 +6,7 @@ library(rpart.plot)
 library(dplyr)
 library(randomForest)
 library(modeest)
-dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset2500_asymsym")
+dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset5000")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
 #lesion=filter(dataset,LESION == 0)
@@ -19,7 +19,7 @@ colnames(les)<-c("LESION")
 particion=runif(nrow(dataset))
 entrenamiento=dataset[particion<0.8,]
 prueba=dataset[particion>=0.8,]
-RFmodel = randomForest(LESION~.,data=entrenamiento,na.action = na.omit,ntree=300)
+RFmodel = randomForest(LESION~.,data=entrenamiento,na.action = na.omit,ntree=500)
 RFmodel$confusion
 predi_RF=predict(RFmodel,prueba)
 mc_rf=table(predi_RF,prueba$LESION)
@@ -29,7 +29,7 @@ varImpPlot(RFmodel)
 
 
 #para escribir el modelo
-saveRDS(RFmodel,"RandomForest_dataset2500.rds")
+saveRDS(RFmodel,"RandomForest5000.rds")
 #RFmodel=readRDS("RandomForest_dataset2500.rds")
 
 library(caret)
@@ -44,8 +44,8 @@ prediBayes=predict(bayesiano,prueba)
 mc_nb=table(prediBayes ,prueba$LESION)
 exac_nb=sum(diag(mc_nb))/sum(mc_nb)
 exac_nb
-saveRDS(bayesiano,"Bayesian_dataset2500.rds")
-#bayesiano=readRDS("Bayesian_dataset2500.rds")
+saveRDS(bayesiano,"Bayesian5000.rds")
+#bayesiano=readRDS("Bayesian.rds")
 
 #bayesiano<-readRD("modeloBayesiano.rds")
 #k-nearest-neighbors
@@ -57,7 +57,7 @@ mc_knn=table(prediKnn,prueba$LESION)
 exac_knn=sum(diag(mc_knn))/sum(mc_knn)
 exac_knn
 
-saveRDS(knn,"Knn_dataset2500.rds")
+saveRDS(knn,"Knn5000.rds")
 #knn=readRDS("Knn_dataset2500.rds")
 
 #regla fissher 
@@ -76,3 +76,24 @@ mc_expertos=table(resultado,prueba$LESION)
 mc_expertos
 exac_expert=sum(diag(mc_expertos))/sum(mc_expertos)
 exac_expert
+
+#curva ROC
+#creamos objeto prediccion
+pre_rf = prediction(c(predi_RF),c(prueba$LESION))
+#creamos objeto performance
+perf_rf = performance(pre_rf,"tpr","fpr")
+#representamos
+plot(perf_rf,colorize = TRUE)
+
+pre_knn = prediction(c(prediKnn),c(prueba$LESION))
+#creamos objeto performance
+perf_knn = performance(pre_knn,"tpr","fpr")
+#representamos
+plot(perf_knn,colorize = TRUE)
+
+
+pre_nb = prediction(c(prediBayes),c(prueba$LESION))
+#creamos objeto performance
+perf_nb = performance(pre_nb,"tpr","fpr")
+#representamos
+plot(perf_nb,colorize = TRUE)
