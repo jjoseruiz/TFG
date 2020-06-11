@@ -14,12 +14,12 @@ elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
     lesion = which(ants_mascara>0)
     #eliminamos fondos y nos quedamos con solo cerebro
     sano = which(ants_mascara<1 & FLAIR>0)
+    
     i  = 0
     j = 0
     indices = matrix(nrow = num_voxel,ncol = 3) 
     while(i<num_voxel/2){
       coordLes = obtenCoord(sample(lesion,1),mascara_gt)
-      coordLes
       condExtremo1=(coordLes[1]<190&coordLes[2]<510&coordLes[3]<510)
       condExtremo2=(coordLes[1]>2&coordLes[2]>2&coordLes[3]>2)
       if(condExtremo1 & condExtremo2){
@@ -31,12 +31,13 @@ elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
             l = l+1
             if(values_Les[l] & i<num_voxel/2 & !estaEnLista(indices,vecinosLes$indices[l,1:ncol(indices)])){
               i = i + 1
-              print(paste0("voxel LESION Nº-->",i))
+              #print(paste0("voxel LESION Nº-->",i))
               indices[i+j,1:ncol(indices)] = vecinosLes$indices[l,1:ncol(indices)]
             }
           }
         }
       }
+      print("LESION FIN")
     }
 
     while(j<num_voxel/2){
@@ -57,11 +58,12 @@ elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
           if(condSano & j<num_voxel/2 & !estaEnLista(indices,vecinosSan$indices[l,1:ncol(indices)]))
           {
             j = j + 1
-            print(paste0("voxel SANO Nº-->",j))
+            #print(paste0("voxel SANO Nº-->",j))
             indices[i+j,1:ncol(indices)] = vecinosSan$indices[l,1:ncol(indices)]
           }
         }
       }
+      print("SANO FIN")
     }
     return(indices)
   }
