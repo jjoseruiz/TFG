@@ -66,16 +66,18 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                              )),
                     tabPanel("Preprocesado",
                              sidebarLayout(titlePanel("Descripción"),mainPanel(tags$hr(),width=24,
-                               tags$article("Aquí prepararemos sus imágenes. En este proceso, aplicaremos a sus imágenes el siguiente flujo de subrutinas. Esto puede tardar varios minutos"),
-                               actionButton("preprocesado",tags$base("Comenzar Prepreocesado")),
-                               tags$h6(textOutput("Preprocesando"))),
-                               #tags$h4("Flujo de Preprocesado"),
+                               tags$article("Aquí prepararemos sus imágenes. En este proceso, aplicaremos a sus imágenes el siguiente flujo de subrutinas. Esto puede tardar varios minutos")),
                              ),
+                            tags$h5("Diagrama de flujo del pre-procesado"),
                             withSpinner(plotOutput("flujoPreprocesado",width = 1000,height = 600)),
+                            actionButton("preprocesado",tags$base("Comenzar Prepreocesado")),
+                            tags$h6(textOutput("preprocesando"))
                     ),
                     tabPanel("Obtención de características",
                              titlePanel("Descripción"),
                              mainPanel("A continuación, la aplicación sacará las características de las MRI.",
+                               tags$h5("Diagrama de flujo de obtención de características"),
+                               withSpinner(plotOutput("flujoDataset",width=800,height = 700)),
                                actionButton("executeFeatures",tags$base("Obtención dataset")),
                                tags$h6(textOutput("features"))
                              )),
@@ -84,26 +86,27 @@ ui <- fluidPage(theme=shinytheme("cerulean"),
                                checkboxGroupInput(inputId = "ml",label="Clasificadores",choiceNames  = list("Random Forest","K-Nearest-Neighbor","Naïve Bayes"),choiceValues = list("rf","knn","nb"),selected = list("rf","knn","nb")),
                                fluidRow(column(6,actionButton("cargaModelos",tags$base("Cargar seleccionados")),
                                tags$h6(textOutput("textCargado"))),
-                               column(6,actionButton("predice",tags$base("Predecir Lesiones")),tags$h6(textOutput("textPred")))
+                               column(6,actionButton("predice",tags$base("Comenzar clasificación")),tags$h6(textOutput("textPred")))
                                )
                              ))),
                     tabPanel(
                       "Resultados",
+                      #RANDOMFOREST
                         fluidRow(
-                        column(12,offset = 4, tags$h5("RANDOM FOREST"),withSpinner(plotOutput("resRF",width = 600,height = 600)))),
-                      fluidRow(
-                        column(12,offset = 4, tags$h5("KNN"),withSpinner(plotOutput("resKNN",width = 600,height = 600)))),
+                        column(12,offset = 4, tags$h5("RANDOM FOREST"))),
+                        withSpinner(papayaOutput("resRF",width = 600, height = 500)),
+                      #K-NEAREST-NEIGHBOR
                         fluidRow(
-                        column(12,offset = 4,tags$h5("NAIVE BAYES"),withSpinner(plotOutput("resNB",width = 600,height = 600)))),
+                        column(12,offset = 4, tags$h5("KNN"))),
+                        withSpinner(papayaOutput("resKNN")),
+                      #NAIVE BAYES
                         fluidRow(
-                        column(12,offset = 4, tags$h5("Comité Expertos"),withSpinner(plotOutput("resComite",width = 600,height = 600)))
-                        ),
-                      fluidRow(
-                        #column(3,column(6,withSpinner(plotOutput("resRF",width = 400,height = 400)))),
-                        #column(3,column(6,withSpinner(plotOutput("resKNN",width = 400,height = 400)))),
-                        #column(3,column(6,withSpinner(plotOutput("resNB",width = 400,height = 400))))
-                      ),
-                      uiOutput("raster_panel")
+                        column(12,offset = 4,tags$h5("NAIVE BAYES"))),#,
+                        withSpinner(papayaOutput("resNB")),
+                      #EXPERTOS
+                        fluidRow(
+                        column(12,offset = 4, tags$h5("Comité Expertos"))),
+                        withSpinner(papayaOutput("resComite"))
                       )))
                 
 server <- function(input, output,session) {
@@ -171,8 +174,12 @@ server <- function(input, output,session) {
     flux = OpenImageR::readImage("Flujo preprocesado.png")
     imageShow(flux)
   })
-  output$preprocesando<-eventReactive(input$preprocesado,{
-    "Iniciando preprocesado."
+  output$preprocesando<-renderText({
+    if(is.null(imagenes())){
+      "Iniciando preprocesado."
+    }else{
+      "Preprocesado terminado"
+    }
   })
   observeEvent(input$preprocesado,{
     print(length(imagenes()))
@@ -180,6 +187,10 @@ server <- function(input, output,session) {
   
   
   #Obtención Características
+  output$flujoDataset<-renderPlot({
+    flux = OpenImageR::readImage("flujo obtenciondataset.png")
+    imageShow(flux)
+  })
   coordenadas<-eventReactive(input$executeFeatures,{
     eligeVoxelPaciente(imagenes()[[1]])
     })
@@ -188,12 +199,12 @@ server <- function(input, output,session) {
     withProgress(
       if(TRUE){
         #coordenadas=eligeVoxelPaciente(imagenes()[[1]])
-        if(!is.null(coordenadas())){
-          datos=recorreImagenes(imagenes(),coordenadas())
-          features=aplicaFuncion(datos,c(mean,min,max,sd,median))
-          lesiones=c(rep(0,nrow(features)))
-          features = cbind2(features,lesiones)
-        }
+        #if(!is.null(coordenadas())){
+         # datos=recorreImagenes(imagenes(),coordenadas())
+          #features=aplicaFuncion(datos,c(mean,min,max,sd,median))
+          #lesiones=c(rep(0,nrow(features)))
+          #features = cbind2(features,lesiones)
+        #}
         return(features)
       },
       message = "Sacando características",
@@ -218,7 +229,7 @@ server <- function(input, output,session) {
       if(TRUE){
         val=which(is.element(input$ml,"rf")==TRUE)
         if(length(val>0)){
-              modelRf=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/RandomForest_dataset2500.rds")
+              modelRf=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/RandomForest5000.rds")
               return(modelRf)
          }
       },
@@ -231,7 +242,7 @@ server <- function(input, output,session) {
       if(TRUE){
         val=which(is.element(input$ml,"knn")==TRUE)
         if(length(val)>0){
-            knn=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Knn_dataset2500.rds")
+            knn=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Knn5000.rds")
             return(knn)
           }
     },
@@ -243,7 +254,7 @@ server <- function(input, output,session) {
       if(TRUE){
         val=which(is.element(input$ml,"nb")==TRUE)
         if(length(val)>0){
-            nb=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Bayesian_dataset2500.rds")
+            nb=readRDS("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/Bayesian5000.rds")
             return(nb)
           }
       },
@@ -266,6 +277,7 @@ server <- function(input, output,session) {
     print(paste0("Cargado Random Forest = ",!is.null(modeloRf())))
     print(paste0("Cargado Knn = ",!is.null(modeloKnn())))
   })
+  #PREDICCION
   resultadoRF<-eventReactive(input$predice,{
     if(!is.null(modeloRf())){
       withProgress(
@@ -286,7 +298,7 @@ server <- function(input, output,session) {
           print("NB")
           predi_nb=predice(modeloNb(),datosPaciente())
           print("FIN PREDICCION NB")
-          print(predi_nb)
+          #print(predi_nb)
           return(predi_nb)
         },message = "Prediciendo con Naive Bayes.",
         detail = "Esto puede tardar algunos minutos."
@@ -306,37 +318,44 @@ server <- function(input, output,session) {
       )
     }
   })
+  observe
   output$textPred<-eventReactive(input$predice,{
-    "Predicción realizada"
+    "Realizando predicción. Pase a la ventana Resultados."
   })
-  output$resRF<-renderPlot({
+  
+  #REPRESENTACIÓN
+  output$resRF<-renderPapaya({
     if(!is.null(resultadoRF())){
       withProgress(
         if(TRUE){
           print("MOSTRANDO RF")
-          resultado(imagenes()[[1]],coordenadas(),resultadoRF())
+          mask = resultado(imagenes()[[1]],coordenadas(),resultadoRF())
+          #papaya(list(imagenes()[[1]],mask))
+          papaya(list(imagenes()[[1]][[1]],mask))
         },message = "Representando Imagen RF. ",
         detail = "Esto puede tardar unos segundos."
       )
     }
   })
-  output$resNB<-renderPlot({
+  output$resNB<-renderPapaya({
     if(!is.null(resultadoNB())){
       withProgress(
         if(TRUE){
           print("MOSTRANDO NB")
-          #resultado(imagenes()[[1]],coordenadas(),resultadoNB())
+          mask = resultado(imagenes()[[1]],coordenadas(),resultadoNB())
+          papaya(list(imagenes()[[1]],mask))
         },message = "Representando Imagen NB. ",
         detail = "Esto puede tardar unos minutos."
         )
     }
   })
-  output$resKNN<-renderPlot({
+  output$resKNN<-renderPapaya({
     if(!is.null(resultadoKnn())){
       withProgress(
         if(TRUE){
           print("MOSTRANDO KNN")
-          #resultado(imagenes()[[1]],coordenadas(),resultadoKnn())
+          mask = resultado(imagenes()[[1]],coordenadas(),resultadoKnn())
+          papaya(list(imagenes()[[1]],mask))
           #resultado(FLAIR,COORDENADAS,predi_knn)
         },message=("Representando Imagen KNN. "),
         detail = "Esto puede tardar unos segundos."
@@ -344,7 +363,7 @@ server <- function(input, output,session) {
     }
   })
   
-  output$resComite<-renderPlot({
+  output$resComite<-renderPapaya({
     lista = list()
     if(!is.null(resultadoRF())){
       rf=resultadoRF()
@@ -362,17 +381,18 @@ server <- function(input, output,session) {
     if(numMode>1){
       comite=c(1:length(coordenadas()))
       if(numMode==2){
-        for(i in 1:length(resultado))
+        for(i in 1:length(coordenadas()))
         {
-          comite[i]=mfv(c(lista[[1]][i],lista[[2]][i])-1)
+          comite[i]=mfv(c(lista[[1]][[i]],lista[[2]][[i]])-1)
         }
       }else{
-        for(i in 1:length(resultado))
+        for(i in 1:length(coordenadas()))
         {
-          comite[i]=mfv(c(lista[[1]][i],lista[[2]][i],lista[[3]][i])-1)
+          comite[i]=mfv(c(lista[[1]][[i]],lista[[2]][[i]],lista[[3]][[i]])-1)
         }
       }
-      resultado(imagenes()[[1]],coordenadas(),comite)
+      mask = resultado(imagenes()[[1]],coordenadas(),comite)
+      papaya(list(imagenes()[[1]],mask))
     }
 })
   
