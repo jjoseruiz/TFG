@@ -13,7 +13,7 @@ elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
     }
     lesion = which(ants_mascara>0)
     #eliminamos fondos y nos quedamos con solo cerebro
-    sano = which(ants_mascara<1 & FLAIR>0)
+    sano = which(ants_mascara<1 & FLAIR>min(FLAIR))
     
     i  = 0
     j = 0
@@ -35,11 +35,13 @@ elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
               indices[i+j,1:ncol(indices)] = vecinosLes$indices[l,1:ncol(indices)]
             }
           }
+          if(i==round(num_voxel/4))
+            print("mitad lesion")
         }
       }
-      print("LESION FIN")
     }
-
+    print("LESION FIN")
+    
     while(j<num_voxel/2){
       coordSan = obtenCoord(sample(sano,1),mascara_gt)
       condExtremo1=(coordSan[1]<190&coordSan[2]<510&coordSan[3]<510)
@@ -62,9 +64,11 @@ elegirVoxeles<-function(num_voxel,mascara_gt,FLAIR)
             indices[i+j,1:ncol(indices)] = vecinosSan$indices[l,1:ncol(indices)]
           }
         }
+        if(j==round(num_voxel/4))
+          print("mitad Sano")
       }
-      print("SANO FIN")
     }
+    print("SANO FIN")
     return(indices)
   }
 }
