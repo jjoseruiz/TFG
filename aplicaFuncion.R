@@ -1,7 +1,9 @@
 aplicaFuncion<-function(vecinos,listaFunciones)
 {
   #n es el número de imágenes
-  n = ncol(vecinos)/27
+  vecinos_xvoxel = 125
+  n = ncol(vecinos)/vecinos_xvoxel
+  
   listaFeatures = matrix(nrow = nrow(vecinos),ncol = length(listaFunciones)*n)
     for(i in 1:nrow(vecinos)){
       if(i == round(nrow(vecinos)/2)){
@@ -17,8 +19,8 @@ aplicaFuncion<-function(vecinos,listaFunciones)
       #n es el número de imágenes
       #almacenamos en una lista. Cada posición de la lista corresponde con el conjunto de vecinos de la imagen n y vóxel iésimo
       for(p in 1:n){
-        valuesk = list(vecinos[i,(c+1):(k*27)])
-        c=k*27
+        valuesk = list(vecinos[i,(c+1):(k*vecinos_xvoxel)])
+        c=k*vecinos_xvoxel
         k=k+1
         #almacenamos en lista los vectores de los valores cada imagen correspondientes al vóxel iésimo
         lista = c(lista,valuesk)
