@@ -4,5 +4,5 @@ correccion<-function(IMG){
   #Aplicamos homgenización de la imagen para evitar artefactor como sombras.
   bf_t1=extrantsr::bias_correct(file=IMG,correction = "N3")
   print("correccion finalizada")
-  return (IMG)
+  return (bf_t1)
 }
