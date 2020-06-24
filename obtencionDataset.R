@@ -32,7 +32,6 @@ for(l in 1:nSujetos){
   rootflairasyml=paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/","S",l,"_FLAIR_ASIMETRICA.nii.gz")
   roott1syml=paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/","S",l,"_T1_SIMETRICA.nii.gz")
   roott1asyml=paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/SIMETRIA/","S",l,"_T1_ASIMETRICA.nii.gz")
-  rootconsensol = paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/CONSENSO/","S",l,"_CONSENSO.nii.gz")
   rots = list(rootflairl,roott1l,rootflairsyml,rootflairasyml,roott1syml,roott1asyml)
   print("Leyendo imagenes")
   mismoSujeto = lapply(rots,antsImageRead)
@@ -51,5 +50,5 @@ for(l in 1:nSujetos){
   j=j+nrow(dataset)
   print(paste0("dataset añadido sujeto --> ",l))
 }
-write.csv(almacen,"dataset5000")
+write.csv(almacen,"dataset5000_r2_v3")
 
