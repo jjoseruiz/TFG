@@ -6,7 +6,9 @@ library(rpart.plot)
 library(dplyr)
 library(randomForest)
 library(modeest)
-dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset5000")
+#r2_V2--> vecinos segundo orden,e elccion de voxeles con c(2,2,2)
+#r2_v2--> vecinos segundo orden, eleccion de voxeles con c(1,1,1)
+dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset5000_r2_v3")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
 #lesion=filter(dataset,LESION == 0)
@@ -21,6 +23,8 @@ entrenamiento=dataset[particion<0.8,]
 prueba=dataset[particion>=0.8,]
 RFmodel = randomForest(LESION~.,data=entrenamiento,na.action = na.omit,ntree=500)
 RFmodel$confusion
+confusionRF = confusionMatrix(predi_RF,prueba$LESION)
+drawConfusionMatrix(confusionRF)
 predi_RF=predict(RFmodel,prueba)
 mc_rf=table(predi_RF,prueba$LESION)
 exac_rf=sum(diag(mc_rf))/sum(mc_rf)
@@ -29,39 +33,37 @@ varImpPlot(RFmodel)
 
 
 #para escribir el modelo
-saveRDS(RFmodel,"RandomForest5000.rds")
-#RFmodel=readRDS("RandomForest_dataset2500.rds")
+saveRDS(RFmodel,"RandomForest5000_r2_v3.rds")
+#RFmodel=readRDS("RandomForest5000_r2_v3.rds")
 
 library(caret)
+#ENTRENAMIENTO DE BAYES Y KNN
 trainData=entrenamiento
 testData=prueba
 trainClase=factor(trainData$LESION)
-
 #bayesiano
 bayesiano=train(trainData,trainClase,method = "nb",trControl =  trainControl(method = "cv",number = 10))
-confusionMatrix(bayesiano)
 prediBayes=predict(bayesiano,prueba)
 mc_nb=table(prediBayes ,prueba$LESION)
+confusionNB = confusionMatrix(prediBayes,prueba$LESION)
+drawConfusionMatrix(confusionNB)
 exac_nb=sum(diag(mc_nb))/sum(mc_nb)
 exac_nb
-saveRDS(bayesiano,"Bayesian5000.rds")
-#bayesiano=readRDS("Bayesian.rds")
+saveRDS(bayesiano,"Bayesian5000_r2_v3.rds")
+#bayesiano=readRDS("Bayesian5000_r2_v3.rds")
 
 #bayesiano<-readRD("modeloBayesiano.rds")
 #k-nearest-neighbors
 knn=train(trainData,trainClase,method = "knn",preProcess = c("center","scale"),tuneLength = 10,trControl = trainControl(method="cv"))
-confusionMatrix(knn)
 prediKnn=predict(knn,prueba)
+confusionKNN = confusionMatrix(prediKnn,factor(testData$LESION))
+drawConfusionMatrix(confusionKNN)
 table(prediKnn,prueba$LESION)
 mc_knn=table(prediKnn,prueba$LESION)
 exac_knn=sum(diag(mc_knn))/sum(mc_knn)
 exac_knn
-
-saveRDS(knn,"Knn5000.rds")
-#knn=readRDS("Knn_dataset2500.rds")
-
-#regla fissher 
-#method= "lda"
+saveRDS(knn,"Knn5000_r2_v3.rds")
+#knn=readRDS("Knn5000_r2_v3.rds")
 
 #Comité de expertos
 resultado=c(1:length(prueba$LESION))
@@ -71,29 +73,9 @@ for(i in 1:length(prueba$LESION))
 }
 
 resultado=factor(resultado)
-resultado
+confusionExperto = confusionMatrix(resultado,prueba$LESION)
+drawConfusionMatrix(confusionExperto)
 mc_expertos=table(resultado,prueba$LESION)
 mc_expertos
 exac_expert=sum(diag(mc_expertos))/sum(mc_expertos)
 exac_expert
-
-#curva ROC
-#creamos objeto prediccion
-pre_rf = prediction(c(predi_RF),c(prueba$LESION))
-#creamos objeto performance
-perf_rf = performance(pre_rf,"tpr","fpr")
-#representamos
-plot(perf_rf,colorize = TRUE)
-
-pre_knn = prediction(c(prediKnn),c(prueba$LESION))
-#creamos objeto performance
-perf_knn = performance(pre_knn,"tpr","fpr")
-#representamos
-plot(perf_knn,colorize = TRUE)
-
-
-pre_nb = prediction(c(prediBayes),c(prueba$LESION))
-#creamos objeto performance
-perf_nb = performance(pre_nb,"tpr","fpr")
-#representamos
-plot(perf_nb,colorize = TRUE)
