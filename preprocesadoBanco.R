@@ -1,12 +1,11 @@
 source("correccion.R")
-source("leeImagen.R")
-source("registro.R")
-source("registroMascara.R")
 library(neurobase)
 library(ANTsR)
 library(extrantsr)
 #Configuración del registro
-s1_FLAIR_CORRECTED=correccion(antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/raw_images/patient1_FLAIR.nii.gz"))
+#s1_FLAIR_CORRECTED=correccion(antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/raw_images/patient1_FLAIR.nii.gz"))
+#antsImageWrite(s1_FLAIR_CORRECTED,paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/s1_FLAIR_CORRECTED.nii.gz"))
+s1_FLAIR_CORRECTED = antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/s1_FLAIR_CORRECTED.nii.gz"))
 S1_MASK = antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/raw_images/patient1_brainmask.nii.gz")
 
 #PARA MI DATASET DE MRI APLICAREMOS LA SIGUIENTE SECUENCIA DE PASOS
@@ -43,17 +42,12 @@ for (i in 1:30){
   wtt1 = antsRegistration(s1_FLAIR_CORRECTED,T1_CORRECT,typeofTransform = "AffineFast")
   wtmask = antsRegistration(S1_MASK,IMG_MASK,typeofTransform = "AffineFast")
     
-  FLAIR_CORRECT_REGISTERED = antsApplyTransforms(s1_FLAIR_CORRECTED,FLAIR_CORRECT,transformlist = wtx$fwdtransforms)
-  NEW_MASK = antsApplyTransforms(S1_MASK,IMG_MASK,transformlist = wtmask$fwdtransforms)
-  T1_CORRECT_REGISTERED = antsApplyTransforms(s1_FLAIR_CORRECTED,T1_CORRECT,transformlist = wtt1$fwdtransforms)
-  CONSENSO_REGISTERED = antsApplyTransforms(s1_FLAIR_CORRECTED,IMG_CONSENSO,transformlist = wtx$fwdtransforms)
-    #registro mascara
-    #print("Registrando la Máscara al espacio de la Máscara del paciente 1")
-    #mascara  = array(as.integer(c(NEW_MASK)),dim = dim(NEW_MASK))
-    
-  
+  FLAIR_CORRECT_REGISTERED = antsApplyTransforms(fixed = s1_FLAIR_CORRECTED,FLAIR_CORRECT,transformlist = wtx$fwdtransforms)
+  NEW_MASK = antsApplyTransforms(fixed = S1_MASK,IMG_MASK,transformlist = wtmask$fwdtransforms)
+  T1_CORRECT_REGISTERED = antsApplyTransforms(fixed = s1_FLAIR_CORRECTED,T1_CORRECT,transformlist = wtt1$fwdtransforms)
+  CONSENSO_REGISTERED = antsApplyTransforms(fixed = s1_FLAIR_CORRECTED,IMG_CONSENSO,transformlist = wtx$fwdtransforms)
+
   ##Extracción
-  print("extrayendo t1")
   print("Extrayendo Cerebro de FLAIR")
   Si_FLAIR_BRAIN_REGISTERED = maskImage(FLAIR_CORRECT_REGISTERED,NEW_MASK)
   print("Extrayendo cerebro de la T1")
@@ -73,12 +67,12 @@ for (i in 1:30){
   writenii(ws_flair,paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/","S",i,"_FLAIR_BRAIN"))
   writenii(ws_t1,paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/","S",i,"_T1_BRAIN"))
   antsImageWrite(CONSENSO_REGISTERED,paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/CONSENSO/","S",i,"_CONSENSO.nii.gz"))
+  antsImageWrite(NEW_MASK,paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/","S",i,"_MASK.nii.gz"))
 }
 
 
 ##control de calidad manual
 k = 0
-
 k=k+1
 consensoi = antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/CONSENSO/","S",k,"_CONSENSO.nii.gz"))
 flair_braini=antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/","S",k,"_FLAIR_BRAIN.nii.gz"))
