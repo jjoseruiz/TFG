@@ -1,13 +1,8 @@
 eligeVoxelPaciente<-function(FLAIR){
   #Eliminamos los valores fondo
-  #seg = fslr::fast(FLAIR)
-  seg = segme
+  seg = fslr::fast(FLAIR)
+  #seg = segme
   mascara_cereb = FLAIR>min(FLAIR)
-  #valores = FLAIR[seg == 2]
-  #im=which((seg==2)>0)
-  #valores = FLAIR[(seg==3)>0]
-  #im = FLAIR[im]
-  #mas=maskImage(FLAIR,im)
   valores = FLAIR[mascara_cereb]
   #calculamos el umbral a partir del cual es probable que los vóxeles sean lesion
   umbral = quantile(valores,0.75)+0.75*IQR(valores)
