@@ -17,8 +17,6 @@ library(extrantsr)
 library(caret)
 library(randomForest)
 library(tree)
-library(rpart)
-library(rpart.plot)
 library(dplyr)
 library(modeest)
 library(papayar)
@@ -167,8 +165,8 @@ server <- function(input, output,session) {
   imagenes<-eventReactive(input$preprocesado,{
     withProgress(
       if(TRUE){
-        listaImag=listaImagenes
-        #listaImag=preprocesadoPaciente(app_imagenes())
+        #listaImag=listaImagenes
+        listaImag=preprocesadoPaciente(app_imagenes())
         return(listaImag)
       }
     , message = "Preprocesando las Imágenes")
@@ -182,7 +180,7 @@ server <- function(input, output,session) {
       if(length(imagenes())==6){
         print("Imágenes preprocesadas con éxito. Pase a la siguiente ventana.")
       }else{
-        print("Carge sus imágenes en la ventana 'SUBIR IMAGENES'")
+        print("Carge sus imágenes en la ventana 'SUBIR IMÁGENES'")
       }
     })
     print(length(imagenes()))
