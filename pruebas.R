@@ -109,7 +109,8 @@ source("aplicaFuncion.R")
 source("resultado.R")
 #proceso para predecir
 segme = antsImageRead("segmentacion_s2.nii.gz")
-
+red0.5 = alpha()
+ortho2(FLAIR,segme==2,col.y = red0.5)
 cordis = eligeVoxelPaciente(listaImagenes[[1]])
 vecinos = recorreImagenes(listaImagenes,cordis)
 listaFunciones = c(mean,min,max,sd,median)
