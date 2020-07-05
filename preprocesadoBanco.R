@@ -7,7 +7,7 @@ library(extrantsr)
 #antsImageWrite(s1_FLAIR_CORRECTED,paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/s1_FLAIR_CORRECTED.nii.gz"))
 s1_FLAIR_CORRECTED = antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/s1_FLAIR_CORRECTED.nii.gz"))
 S1_MASK = antsImageRead("/Users/juanjoseruizpenela/Documents/IMG1/raw_images/patient1_brainmask.nii.gz")
-
+#Enlace para descargar TODAS las imágenes preprocesadas y calculadas sus simétricas, asimétricas, máscaras y GT --> https://drive.google.com/file/d/1F7IY99OY2B6rrff5_AqDhzWOJohENiOE/view?usp=sharing
 #PARA MI DATASET DE MRI APLICAREMOS LA SIGUIENTE SECUENCIA DE PASOS
 for (i in 1:30){
   ###LECTURA
