@@ -7,9 +7,8 @@ source("elegirVoxeles.R")
 source("obtenCoord.R")
 source("valoresImagen.R")
 source("recorreImagenes.R")
-source("devuelveImagenes.R")
 source("aplicaFuncion.R")
-source("sacoValorVecinos.R")
+#dirección para descargar el dataset --> https://drive.google.com/file/d/1o2cPsFSDkSlYaY5Sx-ZvoqyTAx7YJEzT/view?usp=sharing
 listaFunciones = c(mean,min,max,sd,median)
 numero_voxeles = 5000
 nSujetos = 30
