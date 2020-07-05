@@ -6,9 +6,10 @@ library(rpart.plot)
 library(dplyr)
 library(randomForest)
 library(modeest)
+#Enlace para descargar los modelos entrenados --> https://drive.google.com/drive/folders/1yW9g9eYRcG2OudWduAqMN29913ozk18Y?usp=sharing
 #r2_V2--> vecinos segundo orden,e elccion de voxeles con c(2,2,2)
 #r2_v2--> vecinos segundo orden, eleccion de voxeles con c(1,1,1)
-dataset<-read.csv("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/TFG/dataset5000_r2_v3")
+dataset<-read.csv("dataset5000_r2_v3")
 dataset<-dataset[,2:ncol(dataset)]
 head(dataset)
 #lesion=filter(dataset,LESION == 0)
