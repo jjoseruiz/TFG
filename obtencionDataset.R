@@ -8,7 +8,10 @@ source("obtenCoord.R")
 source("valoresImagen.R")
 source("recorreImagenes.R")
 source("aplicaFuncion.R")
+<<<<<<< HEAD
 #dirección para descargar el dataset --> https://drive.google.com/file/d/1o2cPsFSDkSlYaY5Sx-ZvoqyTAx7YJEzT/view?usp=sharing
+=======
+>>>>>>> 4ef21c0ca9639fca49379a40ca603518a277d931
 listaFunciones = c(mean,min,max,sd,median)
 numero_voxeles = 5000
 nSujetos = 30
