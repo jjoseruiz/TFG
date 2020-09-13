@@ -10,7 +10,7 @@ preprocesadoPaciente<-function(listaImagenes){
   t1=correccion(listaImagenes[[2]])
   #Registro
   print("Aplicando registros")
-  s1_FLAIR_CORRECTED=antsImageRead(paste0("/Users/juanjoseruizpenela/Documents/GIT REPOSITORY/myrepo/BRAIN_IMAGES/s1_FLAIR_CORRECTED.nii.gz"))
+  s1_FLAIR_CORRECTED=antsImageRead(paste0("S1_FLAIR_CORRECTED.nii.gz"))
   wtx = antsRegistration(s1_FLAIR_CORRECTED,flair,typeofTransform = "AffineFast")
   wtt1 = antsRegistration(s1_FLAIR_CORRECTED,t1,typeofTransform = "AffineFast")
   flairReg=antsApplyTransforms(s1_FLAIR_CORRECTED,flair,transformlist = wtx$fwdtransforms)
